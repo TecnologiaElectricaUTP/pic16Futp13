@@ -1,4 +1,3 @@
-
 ;***********************Prueba_libreria_retardos******************************
 ;
 ;
@@ -10,9 +9,9 @@
         ;requerido por Isis!
 
 
-INCLUDE <E:\Archivos Personales\Documentos\Universidad\Microcontroladores\Programacion ASM\Librerias MPLAB\Macro_Delays.INC>
+INCLUDE <//home/user/Programacion ASM/Librerias MPLAB/Macro_Delay.INC>
 
-CLOCK equ 16000000    ;Seleccionamos la velocidad del reloj en Hz
+CLOCK equ 4000000    ;Seleccionamos la velocidad del reloj en Hz
 
 
 ;====VARIABLES Y CONSTANTES====
@@ -23,21 +22,22 @@ CLOCK equ 16000000    ;Seleccionamos la velocidad del reloj en Hz
 ;====VECTOR RESET====
 Reset    
         ORG        0x00
+        CLRW                       ;Limpio W .
         GOTO     Inicio
         ORG        0x04            ;Manejo de interrupciones en direccion 4
         
 ;====PROGRAMA PRINCIPAL====
         ORG        5
 Inicio
-        BCF        STATUS,RP1        ;Seleccionamos Bank0 o Bank1
-        BSF        STATUS,RP0        ;Seleccionamos Bank1
-        CLRF    TRISB                ;PORTB --> Out
-        MOVLW    b'00111111'         ;
-        MOVWF    TRISA               ;PORTA --> In
-        MOVLW    0x06                ;Hacemos todas las salidas analogicas
-        MOVWF    ADCON1
-        BCF        STATUS,RP0        ;Seleccionamos Bank0
-        CLRF    PORTB
+        BCF        STATUS,RP1          ;Seleccionamos Bank0 o Bank1
+        BSF        STATUS,RP0          ;Seleccionamos Bank1
+        CLRF       TRISB               ;PORTB --> Out
+        MOVLW      b'00111111'         ;
+        MOVWF      TRISA               ;PORTA --> In
+        MOVLW      0x06                ;Hacemos todas las salidas analogicas
+        MOVWF      ADCON1
+        BCF        STATUS,RP0          ;Seleccionamos Bank0
+        CLRF       PORTB
 
 Loop
         BSF        PORTB,0            ;Encendemos el LED en PORTB.0
@@ -49,4 +49,3 @@ Loop
 INCLUDE <//home/user/Programacion ASM/Librerias MPLAB/delay_us.INC>
 INCLUDE <//home/user/Programacion ASM/Librerias MPLAB/delay_ms.INC>
 INCLUDE <//Programacion ASM/Librerias MPLAB/delay_s.INC>
-
