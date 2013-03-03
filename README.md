@@ -13,4 +13,14 @@ para estudiantes de Tecnologia Electrica .
 Todos los comentarios y sugerencias sobre este material 
 pueden ser enviadas a "hfjimenez@utp.edu.co",antes de 
 enviar cualquier sugerencia o comentario realiza la 
-debida investigacion en una biblioteca o internet.
+debida investigacion en una biblioteca o internet
+###Compilar Debian Gnu/Linux
+Tu puedes compilar tu codigo asm en linux usando 
+Gputils(gpasm,gplink,gplib) el tambien esta disponible 
+para windows .
+
+http://sourceforge.net/p/gputils/wiki/Home/
+
+puedes encontrar mas detalles de los procesadores soportados:
+
+http://gputils.sourceforge.net/gputils.pdf
