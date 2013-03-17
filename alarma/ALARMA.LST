@@ -1,0 +1,403 @@
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ; Descripcion :Alarma Comercial  con pic16f877a
+                      00002 ; Autores : Darwin Salazar - Hector Jimenez Saldarriaga 
+                      00003 ; Feedback : hfjimenez@utp.edu.co,darsalazar@utp.edu.co 
+                      00004 
+                      00005 
+                      00006 ;WARNING
+                      00007 ; Tener en cuenta para retardos:
+                      00008 ;1S==1000ms ==1000000µs 
+                      00009 ;cada instruccion usa 1µs si es de control 2µ con cristal == 4Mhz 
+                      00010 
+                      00011 ;######################################################################
+                      00012 ;                               Generalidades del Micro 
+                      00013 ;Resumen de FSR's y GPR 
+                      00014 ;--------------------------------------------------------------------------------
+                      00015 ;Memoria de programa : FLASH, 8 K de instrucciones de 14 bits c/u. 
+                      00016 ; Memoria de datos       : 368 bytes RAM, 256 bytes EEPROM. 
+                      00017 ; Pila (Stack)  : 8 niveles (14 bits). 
+                      00018 ; Fuentes de interrupción : 13 
+                      00019 ; Instrucciones  : 35 
+                      00020 ; Encapsulado  : DIP de 40 pines. 
+                      00021 ; Frecuencia oscilador : 20 MHz (máxima) 
+                      00022 ; Temporizadores/Contadores: 1 de 8 bits (Timer 0); 1 de 16 bits (Timer 1); 1 de 8 bits (Timer 2) con pr
+                            e y post escalador. Un perro guardián (WDT) 
+                      00023 ; Líneas de E/S :  6 del puerto A, 8 del puerto B, 8 del puerto C, 8 del puerto D y 3 del puerto E, ade
+                            más de 8 entradas análogas. 
+                      00024 ; Dos módulos de Captura, Comparación y PWM: 
+                      00025 ;- Captura: 16 bits. Resolución máx. = 12.5 nseg. 
+                      00026 ;- Comparación: 16 bits. Resolución máx. = 200 nseg. 
+                      00027 ;- PWM: Resolución máx. = 10 bits. 
+                      00028 ; Convertidor Análogo/Digital de 10 bits multicanal (8 canales de entrada). 
+                      00029 ; Puerto serial síncrono (SSP) con bus SPI (modo maestro) y bus I²C (maestro/esclavo). 
+                      00030 ; USART (Universal Synchronous Asynchronous Receiver Transmitter) con dirección de detección de 9 bits
+                            . 
+                      00031 ; Corriente máxima absorbida/suministrada (sink/source) por línea (pin): 25 mA 
+                      00032 ; Oscilador : Soporta 4 configuraciones diferentes: XT, RC,  HS, LP. 
+                      00033 ; Tecnología de Fabricación: CMOS 
+                      00034 ; Voltaje de alimentación: 3.0 a 5.5 V DC
+                      00035  
+                      00036 ;################BANCO 0##############
+                      00037  
+                      00038 ;- TMR0: Registro del temporizador/contador de 8 bits. 
+                      00039 ;- PCL: Byte menos significativo del contador de programa (PC). 
+                      00040 ;- STATUS: Contiene banderas (bits) que indican el estado del procesador 
+                      00041 ;   después de una operación aritmética/lógica. 
+                      00042 ;- FSR: Registro de direccionamiento indirecto. 
+                      00043 ;- PORTA, PORTB, PORTC, PORTD, PORTE: Registro de puertos de E/S de  datos. Conectan con los pines físi
+                            cos del micro. 
+                      00044 ;- PCLATH: Byte alto (más significativo) del contador de programa (PC). 
+                      00045 ;- INTCON: Registro de control de las interrupciones. 
+                      00046 ;- ADRESH: Parte alta del resultado de la conversión A/D. 
+                      00047 ;- ADCON0: Controla la operación del módulo de conversión A/D 
+                      00048 ;##################BANCO 1###############
+                      00049 ;- OPTION: Registro de control de frecuencia del TMR0. 
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00050 ;- TRISA, TRISB, TRISC, TRISD. TRISE: Registros de configuración de la operación de los pines de los p
+                            uertos. 
+                      00051 ;- ADRESL: Parte baja del resultado de la conversión A/D. 
+                      00052 ;- ADCON1: Controla la configuración de los pines de entrada análoga. 
+                      00053 ;##########################BANCO 2#######################
+                      00054 ;- TMR0: Registro del temporizador/contador de 8 bits. 
+                      00055 ;- PCL: Byte menos significativo del contador de programa (PC). 
+                      00056 ;- FSR: Registro de direccionamiento indirecto. 
+                      00057 ;- EEDATA: Registro de datos de la memoria EEPROM. 
+                      00058 ;- EEADR: Registro de dirección de la memoria EEPROM. 
+                      00059 ;- PCLATH: Byte alto (más significativo) del contador de programa (PC). 
+                      00060 ;- INTCON: Registro de control de las interrupciones. 
+                      00061  
+                      00062 ;#########BANCO 3##################
+                      00063 ;- OPTION: Registro de control de frecuencia del TMR0. 
+                      00064 ;- EECON1: Control de lectura/escritura de la memoria EEPROM de datos. 
+                      00065 ;- EECON2: No es un registro físico.
+                      00066 ;----------------------------------------------------------------------------------------
+                      00067 
+                      00068 
+                      00069 
+                      00070 ;######################################################################
+                      00071 ;               Generalidades del Problema de la Alarma  Comercial 
+                      00072 ;######################################################################
+                      00073 ;                                                       I/O
+                      00074 ;SENSORES I/O :{Rb0 = B0 = Llave, Rb1 = B1 = SMVTO ,Rb2= P0 = Spuerta, Rb3 = S0 =SIRENA}
+                      00075 ;{Rc0,Rc1,Rc2 = Contraseña para activacion de alarma,RC3=L0= LED ROJO,RC4=L1=LED VERDE}
+                      00076 ;Pseudo Codigo
+                      00077 ;1.si B0==0                                                             ;SISTEMA OFF 
+                      00078 ;2.por lo cual RC3==1 Y vuelva a preguntar      ;Enciende Led de color rojo
+                      00079 ;3.de lo contrario                                              ;SISTEMA ON 
+                      00080 ;4.Llamar a retardo                                                     ;Retardo de 10 segundos 
+                      00081 ;5.poner RC4==1                                                         ;Led Verde Encendido
+                      00082 ;6.si B1==0                                                             ;Sensor de Moviento detecta 
+                      00083 ;7.entonces S0==1                                                       ;Sirena empieza a sonar 
+                      00084 ;8.llamar a retardo 20segundo                           ;Suena durante de 20s 
+                      00085 ;9.si P0==1                                                             ;sensor de puerta se activo 
+                      00086 ;10.llamar a retardo                                            ;retardo de 10 segundos 
+                      00087 ;11. de lo contrario S0==1                                      ;Alarma suena indefinidamente
+                      00088 ;fin 
+                      00089 ; ******** DEFINICION DE REGISTROS UTILIZADOS
+  00000003            00090 status  equ     03
+  00000005            00091 ptoa    equ     05
+  00000006            00092 ptob    equ     06
+  00000007            00093 ptoc    equ     07
+  00000008            00094 ptod    equ     08
+  00000009            00095 ptoe    equ     09
+  0000000A            00096 pclath  equ     0ah
+  0000000B            00097 intcon  equ     0bh
+  0000000C            00098 pir1    equ     0ch
+  00000018            00099 rcsta   equ     18h
+  00000019            00100 txreg   equ     19h
+  0000001A            00101 rcreg   equ     1ah
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  0000001E            00102 adresh  equ     1eh
+  0000001F            00103 adcon0  equ     1fh
+  00000085            00104 trisa   equ     85h
+  00000086            00105 trisb   equ     86h
+  00000087            00106 trisc   equ     87h
+  00000088            00107 trisd   equ     88h
+  00000089            00108 trise   equ     89h
+  00000098            00109 txsta   equ     98h
+  00000099            00110 spbrg   equ     99h
+  0000009E            00111 adresl  equ     9eh
+  0000009F            00112 adcon1  equ     9fh
+                      00113 
+                      00114 ;Definicion de bits utilizados
+  00000005            00115 rp0             equ     5
+  00000006            00116 rp1             equ     6
+  00000007            00117 irp             equ     7
+  00000002            00118 z               equ     2
+  00000000            00119 c               equ     0
+  00000004            00120 txif    equ     4
+                      00121 
+                      00122 ;Variables para retardo
+Warning[205]: Found directive in column 1. (cblock)
+                      00123 cblock  0x20
+  00000020            00124                 PDel0
+  00000021            00125                 PDel1
+  00000022            00126                 PDel2
+Warning[205]: Found directive in column 1. (ENDC)
+                      00127 endc
+                      00128 ; ************  Configuracion para el simulador Proteus
+                      00129 
+Warning[205]: Found directive in column 1. (list)
+                      00130 list p=16f877
+                      00131 
+  00000FCF            00132 _CP_ALL                         EQU     H'0FCF'
+  00001FDF            00133 _CP_HALF                        EQU     H'1FDF'
+  00002FEF            00134 _CP_UPPER_256                   EQU     H'2FEF'
+  00003FFF            00135 _CP_OFF                         EQU     H'3FFF'
+  000037FF            00136 _DEBUG_ON                               EQU     H'37FF'
+  00003FFF            00137 _DEBUG_OFF                      EQU     H'3FFF'
+  00003FFF            00138 _WRT_ENABLE_ON                  EQU     H'3FFF'
+  00003DFF            00139 _WRT_ENABLE_OFF                 EQU     H'3DFF'
+  00003EFF            00140 _CPD_ON                         EQU     H'3EFF'
+  00003FFF            00141 _CPD_OFF                        EQU     H'3FFF'
+  00003FFF            00142 _LVP_ON                         EQU     H'3FFF' 
+  00003F7F            00143 _LVP_OFF                        EQU     H'3F7F' 
+  00003FFF            00144 _BODEN_ON                       EQU     H'3FFF'
+  00003FBF            00145 _BODEN_OFF                      EQU     H'3FBF'
+  00003FFF            00146 _PWRTE_OFF                      EQU     H'3FFF'
+  00003FF7            00147 _PWRTE_ON                       EQU     H'3FF7'
+  00003FFF            00148 _WDT_ON                         EQU     H'3FFF'
+  00003FFB            00149 _WDT_OFF                        EQU     H'3FFB'
+  00003FFC            00150 _LP_OSC                         EQU     H'3FFC'
+  00003FFD            00151 _XT_OSC                         EQU     H'3FFD'
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00003FFE            00152 _HS_OSC                         EQU     H'3FFE'
+  00003FFF            00153 _RC_OSC                         EQU     H'3FFF'
+Warning[205]: Found directive in column 1. (__CONFIG)
+2007   3FF1           00154 __CONFIG _CP_OFF & _WDT_OFF & _XT_OSC & _PWRTE_ON 
+                      00155 
+                      00156 ;Copy Protection Off -WatchdoG Timer Off -Oscilardor Xt 4Mhz -Power on reset on 
+                      00157 
+                      00158 ;################MAIN###############################################
+                      00159  
+0000                  00160         org     0x00                      ;Empieza ejecucion en direccion 000h
+0000   2822           00161         goto    inicio                    ;retardo de 10 segundos
+0001   302B           00162 demora  movlw     d'43'       ; 1 set numero de repeticion  (C)
+0002   00A0           00163         movwf     PDel0       ; 1 
+0003   30E2           00164 PLoop0  movlw     d'226'      ; 1 set numero de repeticion  (B)
+0004   00A1           00165         movwf     PDel1       ; 1 
+0005   30CD           00166 PLoop1  movlw     d'205'      ; 1 set numero de repeticion  (A)
+0006   00A2           00167         movwf     PDel2       ; 1 
+0007   0000           00168 PLoop2  nop                       ; 1 
+0008   0000           00169         nop                       ; 1 ciclo delay
+0009   0BA2           00170         decfsz    PDel2, 1    ; 1 + (1) es el tiempo 0  ? (A)
+000A   2807           00171         goto      PLoop2      ; 2 no, loop
+000B   0BA1           00172         decfsz    PDel1,  1 
+000C   2805           00173         goto      PLoop1    
+000D   0BA0           00174         decfsz    PDel0,  1 
+000E   2803           00175         goto      PLoop0     
+000F   0000           00176         nop                      
+0010   0008           00177         return             
+                      00178 ;#############PUERTOS####################
+                      00179 ;SENSORES I/O :{Rb0 = B0 = Llave, Rb1 = B1 = SMVTO ,Rb2= P0 = Spuerta, Rb3 = S0 =SIRENA}
+                      00180 ;{Rc0,Rc1,Rc2 = Contraseña para activacion de alarma,RC3=L0= LED ROJO,RC4=L1=LED VERDE}
+0011                  00181 puertos
+0011   1303           00182         bcf     status,rp1      ;pasar al banco 1
+0012   1683           00183         bsf     status,rp0      ;pasar al banco 1 de la RAM
+0013   30FF           00184         movlw   b'11111111'             
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0014   0085           00185         movwf   trisa           ;puerto A entradas
+0015   30F7           00186         movlw   b'11110111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0016   0086           00187         movwf   trisb           ;puerto B salidas
+0017   30E7           00188         movlw   b'11100111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0018   0087           00189         movwf   trisc           ;puerto C entradas  
+0019   30E7           00190         movlw   b'11100111'  
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001A   0088           00191         movwf   trisd           ;puerto D entradas 
+001B   30EF           00192         movlw   b'11101111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001C   0089           00193         movwf   trise           ;puerto E entradas  
+001D   30F7           00194         movlw   b'11110111'     ; Puerto A y E solo digital
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001E   009F           00195         movwf   adcon1
+001F   0103           00196         clrw                            ;Limpio W.
+0020   1283           00197         bcf     status,rp0              ;pasar al banco 0
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0021   0008           00198         return 
+                      00199 ;  ************  PROGRAMA PRINCIPAL  ***************
+                      00200 ;programa opcional simple
+                      00201 ;abierto clrf   ptob
+                      00202 ;       btfss   ptob,1          ;pregunta si hay un uno en la llave
+                      00203 ;       goto    abierto
+                      00204 ;    call    r1
+                      00205 ;sensorb btfss   ptob,2          ;pregunta si hay un uno en el sensor magnetico
+                      00206 ;       goto    sensora
+                      00207 ;       call    r1
+                      00208 ;    goto    alarma
+                      00209 ;sensora btfss   ptob,3           ;sensor de mivimiento pregunta si esta en uno
+                      00210 ;    goto    sensorb
+                      00211 ;alarma         bsf     ptob,0
+                      00212 ;       call    r1
+                      00213 ;       call    r1
+                      00214 ;       bcf     ptob,0
+                      00215 ;       goto    abierto
+                      00216 ;       end
+                      00217 
+                      00218 ;########## INICIO ##############
+0022                  00219 inicio  
+0022   2011           00220                 call puertos            ;configuro pines
+0023   0000           00221                 nop                                     ;nop
+0024   0186           00222                 clrf    ptob            ;Limpio pines de puerto b 
+0025   0187           00223                 clrf    ptoc            ; Limpio pines de puerto c
+0026   1806           00224 disable btfsc   ptob,0          ;pregunto si B0==0 si es cero salta dos posiciones adelante
+0027   282A           00225                 goto    activado        ;delo contrario va a activado
+0028   1587           00226                 bsf ptoc,3                      ;enciende led rojo      
+0029   2826           00227                 goto disable            ;se queda preguntando por si esta activado  o no !
+                      00228                 ;goto   inicio          ;Vuelve a empezar el ciclo 
+                      00229 
+                      00230 ;Modo de Vigilancia             
+002A                  00231 activado                 
+002A   0000           00232                 nop 
+002B   1187           00233                 bcf ptoc,3              ;apaga led rojo 
+002C   2001           00234                 call demora     ;llama retardo de 10 segundos
+002D   1607           00235                 bsf ptoc,4              ;enciende led  indicadorde color verde
+002E   1D06           00236 puerta  btfss ptob,2    ;pregunta si hay uno en sensor magnetico
+002F   2836           00237                 goto  sensormov ;si no hay uno en sensor magnetico de puerta,pregunte por sensor de movi
+                            miento 
+                      00238                                                 ;Enciende alarma 
+0030   2001           00239                 call demora     ;si hay uno en sensor de puerta 
+0031   1586           00240                 bsf  ptob,3     
+0032   2001           00241                 call demora 
+0033   2001           00242                 call demora
+0034   1186           00243                 bcf  ptob,3             ;apaga  alarma 
+0035   282E           00244                 goto puerta     ;vuelve y checka que no halla nadie,si no suena
+                      00245                 
+                      00246                 
+0036   1C86           00247 sensormov       btfss ptob,1    ;hay movimiento ? si 
+0037   282E           00248                         goto puerta
+0038   1586           00249                         bsf  ptob,3             
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0039   2001           00250                         call demora
+003A   2001           00251                         call demora
+003B   1186           00252                         bcf ptob,3
+003C   2836           00253                         goto sensormov 
+003D   2822           00254                 goto inicio 
+003E   1586           00255                 bsf ptob,3
+                      00256         end
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PDel0                             00000020
+PDel1                             00000021
+PDel2                             00000022
+PLoop0                            00000003
+PLoop1                            00000005
+PLoop2                            00000007
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00000FCF
+_CP_HALF                          00001FDF
+_CP_OFF                           00003FFF
+_CP_UPPER_256                     00002FEF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_ENABLE_OFF                   00003DFF
+_WRT_ENABLE_ON                    00003FFF
+_XT_OSC                           00003FFD
+__16F877                          00000001
+activado                          0000002A
+adcon0                            0000001F
+adcon1                            0000009F
+adresh                            0000001E
+adresl                            0000009E
+c                                 00000000
+demora                            00000001
+disable                           00000026
+inicio                            00000022
+intcon                            0000000B
+irp                               00000007
+pclath                            0000000A
+pir1                              0000000C
+ptoa                              00000005
+ptob                              00000006
+ptoc                              00000007
+ptod                              00000008
+ptoe                              00000009
+puerta                            0000002E
+puertos                           00000011
+rcreg                             0000001A
+rcsta                             00000018
+rp0                               00000005
+rp1                               00000006
+MPASM 03.00 Released           ALARMA.ASM   3-15-2013  9:51:32         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+sensormov                         00000036
+spbrg                             00000099
+status                            00000003
+trisa                             00000085
+trisb                             00000086
+trisc                             00000087
+trisd                             00000088
+trise                             00000089
+txif                              00000004
+txreg                             00000019
+txsta                             00000098
+z                                 00000002
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXX-
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:    63
+Program Memory Words Free:  8129
+
+
+Errors   :     0
+Warnings :     4 reported,     0 suppressed
+Messages :     6 reported,     0 suppressed
+
+

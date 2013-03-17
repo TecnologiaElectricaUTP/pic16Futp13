@@ -1,0 +1,10 @@
+Warning[205] G:\ALARMA\ALARMA.ASM 123 : Found directive in column 1. (cblock)
+Warning[205] G:\ALARMA\ALARMA.ASM 127 : Found directive in column 1. (ENDC)
+Warning[205] G:\ALARMA\ALARMA.ASM 130 : Found directive in column 1. (list)
+Warning[205] G:\ALARMA\ALARMA.ASM 154 : Found directive in column 1. (__CONFIG)
+Message[302] G:\ALARMA\ALARMA.ASM 185 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] G:\ALARMA\ALARMA.ASM 187 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] G:\ALARMA\ALARMA.ASM 189 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] G:\ALARMA\ALARMA.ASM 191 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] G:\ALARMA\ALARMA.ASM 193 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] G:\ALARMA\ALARMA.ASM 195 : Register in operand not in bank 0.  Ensure that bank bits are correct.
