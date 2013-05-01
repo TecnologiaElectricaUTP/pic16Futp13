@@ -1,0 +1,388 @@
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;Contador de 4 digitos 0000 a 9999 en displays con PIC877
+                      00002 ; ******** DEFINICION DE REGISTROS UTILIZADOS
+                      00003 
+  00000002            00004 pcl     equ     02h
+  00000003            00005 status  equ     03
+  00000003            00006 STATUS  equ     03
+  00000005            00007 ptoa    equ     05
+  00000006            00008 ptob    equ     06
+  00000007            00009 ptoc    equ     07
+  00000008            00010 ptod    equ     08
+  00000009            00011 ptoe    equ     09
+  0000000A            00012 pclath  equ     0ah
+  0000000B            00013 intcon  equ     0bh
+  0000000C            00014 pir1    equ     0ch
+  00000018            00015 rcsta   equ     18h
+  00000019            00016 txreg   equ     19h
+  0000001A            00017 rcreg   equ     1ah
+  0000001E            00018 adresh  equ     1eh
+  0000001F            00019 adcon0  equ     1fh
+  00000085            00020 trisa   equ     85h
+  00000086            00021 trisb   equ     86h
+  00000087            00022 trisc   equ     87h
+  00000088            00023 trisd   equ     88h
+  00000089            00024 trise   equ     89h
+  00000098            00025 txsta   equ     98h
+  00000099            00026 spbrg   equ     99h
+  0000009E            00027 adresl  equ     9eh
+  0000009F            00028 adcon1  equ     9fh
+                      00029 ;Definicion de bits utilizados
+  00000005            00030 rp0     equ     5
+  00000006            00031 rp1     equ     6
+  00000007            00032 irp     equ     7
+  00000002            00033 z       equ     2
+  00000000            00034 c       equ     0
+  00000000            00035 C       equ 0
+  00000004            00036 txif    equ     4
+  00000002            00037 go      equ     2
+                      00038 ;Variables del usuario
+  00000030            00039 loops   equ     30h
+  00000031            00040 loops2  equ     31h
+  00000036            00041 loops3  equ     36h
+  00000022            00042 comp    equ 22h
+  00000020            00043 Unidad  equ 20h                         ;Para almacenar unidades
+  00000021            00044 Decena  equ 21h                         ;Para almacenar decenas
+                      00045 
+                      00046 
+                      00047 ; ************  Configuracion para el simulador Proteus
+Warning[205]: Found directive in column 1. (list)
+                      00048 list p=16f877
+                      00049 
+  00000FCF            00050 _CP_ALL                         EQU     H'0FCF'
+  00001FDF            00051 _CP_HALF                        EQU     H'1FDF'
+  00002FEF            00052 _CP_UPPER_256                   EQU     H'2FEF'
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00003FFF            00053 _CP_OFF                         EQU     H'3FFF'
+  000037FF            00054 _DEBUG_ON                               EQU     H'37FF'
+  00003FFF            00055 _DEBUG_OFF                      EQU     H'3FFF'
+  00003FFF            00056 _WRT_ENABLE_ON                  EQU     H'3FFF'
+  00003DFF            00057 _WRT_ENABLE_OFF                 EQU     H'3DFF'
+  00003EFF            00058 _CPD_ON                         EQU     H'3EFF'
+  00003FFF            00059 _CPD_OFF                        EQU     H'3FFF'
+  00003FFF            00060 _LVP_ON                         EQU     H'3FFF' 
+  00003F7F            00061 _LVP_OFF                        EQU     H'3F7F' 
+  00003FFF            00062 _BODEN_ON                       EQU     H'3FFF'
+  00003FBF            00063 _BODEN_OFF                      EQU     H'3FBF'
+  00003FFF            00064 _PWRTE_OFF                      EQU     H'3FFF'
+  00003FF7            00065 _PWRTE_ON                       EQU     H'3FF7'
+  00003FFF            00066 _WDT_ON                         EQU     H'3FFF'
+  00003FFB            00067 _WDT_OFF                        EQU     H'3FFB'
+  00003FFC            00068 _LP_OSC                         EQU     H'3FFC'
+  00003FFD            00069 _XT_OSC                         EQU     H'3FFD'
+  00003FFE            00070 _HS_OSC                         EQU     H'3FFE'
+  00003FFF            00071 _RC_OSC                         EQU     H'3FFF'
+Warning[205]: Found directive in column 1. (__CONFIG)
+2007   3FF1           00072 __CONFIG _CP_OFF & _WDT_OFF & _XT_OSC & _PWRTE_ON 
+                      00073 ;:::::::::::::::::INICIO :::::::::::::::::
+0000                  00074                 org             0x00        ;begin in 0 address ram!
+0000   2855           00075                 goto            inicio  ;main 
+                      00076 ;:::::::::::::::::::::::::::::::::::::::::::
+                      00077 ;-----------RETARDO MILISEGUNDOS-----------------
+0001                  00078 retarms         
+0001   00B0           00079             movwf               loops           ;retardo de milisegundos cargado desde afuera
+0002                  00080 otro2           
+0002   306E           00081             movlw               d'110'
+0003   00B1           00082                     movwf               loops2
+0004   0000           00083 otro    nop
+0005   0000           00084                 nop
+0006   0000           00085                 nop
+0007   0000           00086                 nop
+0008   0000           00087                 nop
+0009   0000           00088                 nop
+000A   0BB1           00089                 decfsz          loops2,1
+000B   2804           00090                 goto            otro
+000C   0BB0           00091                 decfsz          loops,1
+000D   2802           00092                 goto            otro2
+000E   0008           00093                 return
+                      00094 
+                      00095 ;#############TABLA ################################
+000F   0782           00096 tabla   addwf   pcl,1           ; leds a encender en orden -gfedcba
+0010   343F           00097                 retlw   b'00111111'     ;0
+0011   3406           00098                 retlw   b'00000110'     ;1
+0012   345B           00099                 retlw   b'01011011'     ;2
+0013   344F           00100                 retlw   b'01001111'     ;3
+0014   3466           00101                 retlw   b'01100110'     ;4
+0015   346D           00102                 retlw   b'01101101'     ;5
+0016   347D           00103                 retlw   b'01111101'     ;6
+0017   3407           00104                 retlw   b'00000111'     ;7      
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0018   347F           00105                 retlw   b'01111111'     ;8      
+0019   346F           00106                 retlw   b'01101111'     ;9
+                      00107 ;########### DISPLAY ########################################
+                      00108 ;Originally taken from duque's sample.
+001A                  00109 display 
+                      00110                                                                  ;rutina que carga cada dato en su respe
+                            ctivo display
+001A   0820           00111                 movf            Unidad,0         ;activando el transistor correspondiente en cada caso
+001B   200F           00112                 call            tabla            ;Display derecho es representado por digito0
+001C   0086           00113                 movwf           ptob
+001D   1487           00114                 bsf                 ptoc,1              ;Activa el display derecho      
+001E   3005           00115                 movlw           d'5'            ;Retardo de 5 ms 
+001F   2001           00116                 call            retarms
+0020   1087           00117                 bcf                 ptoc,1              ;desactiva el display derecho
+0021   0821           00118                 movf            Decena,0        
+0022   200F           00119                 call            tabla
+0023   0086           00120                 movwf           ptob            ;pone el dato de display izquierdo 
+0024   1407           00121                 bsf                 ptoc,0              ;activa display izquierdo       
+0025   3005           00122                 movlw           d'5'            ;Retardo de 5 ms 
+0026   2001           00123                 call            retarms         
+0027   1007           00124                 bcf                 ptoc,0              ;desactiva display izquierdo 
+0028   0008           00125                 return          
+                      00126 ;PUERTOS------------------
+0029   1303           00127 ports           bcf             status,6                
+002A   1683           00128                 bsf             status,5                
+002B   307F           00129                 movlw           b'1111111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+002C   0085           00130                 movwf           trisa
+002D   3080           00131                 movlw           b'10000000'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+002E   0086           00132                 movwf           trisb
+002F   30FC           00133                 movlw           b'11111100'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0030   0087           00134                 movwf           trisc
+0031   30F0           00135                 movlw           b'11110000'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0032   0088           00136                 movwf           trisd
+0033   30EE           00137                 movlw           b'11101110'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0034   0089           00138                 movwf           trise               ;puerto E entradas  
+0035   3001           00139                 movlw           b'00000001'         ;selecciono Vref internos (+5 y GND) y 5 canales del
+                             puerto A analogos, puerto E todo digital
+                      00140                                                             ; 0001 A A A A VREF+ A A A RA3 VSS 7/1 RA0 c
+                            omo canal analogo Ane como referencia externa Vref + = Vdd micro Vref- = Vss
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0036   009F           00141                 movwf           adcon1              
+0037   1283           00142                 bcf                     status,rp0          ;pasar al banco 0
+0038   3081           00143                 movlw           b'10000001'         ;selecciona canal RA0, reloj de conv. fosc/32
+                      00144                                         ;Adcon0         b'10'           Fosc/32 
+                      00145                                         ;                       b'--000'        ;Channel RA0 for usage !
+                      00146                                         ;                       b'-----0 o 1' ;CAD is doing the homework
+                             or not 
+                      00147                                         ;                       b'------        ' ;Operative or not 
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0039   009F           00148                 movwf           adcon0          ;Turn on the converter(CAD)
+003A   0008           00149                 return
+                      00150 ;:::::::::Convertion :::::::::::
+                      00151 ;Originally taken from duque's sample.
+                      00152 ;La rutina de conversion solo encarga de la adquision de los datos,guardado de datos 
+                      00153 ;en variables conocidas como BIN,luego retorna 
+003B                  00154 conver
+003B   0000           00155         nop
+003C   0000           00156         nop                         ;estas instrucciones nop sirven para
+003D   0000           00157         nop                         ;darle al micro el tiempo de adquisicion
+003E   0000           00158         nop                         ;requerido. En este caso es de 7 us aprox.
+003F   0000           00159         nop
+0040   0000           00160         nop
+0041   0000           00161         nop
+0042   0000           00162         nop
+0043   151F           00163         bsf     adcon0,go       ;inicia conversion
+0044   0000           00164         nop
+0045   0000           00165         nop
+0046                  00166 consu   
+0046   191F           00167         btfsc   adcon0,go       ;espera que termine de convertir el dato
+0047   2846           00168         goto    consu
+0048   081E           00169         movf    adresh,0        ;guarda resultado en BIN !
+0049   00A0           00170         movwf   Unidad
+004A   0008           00171         return
+                      00172 ;---------Converter Binary Code to  BCD-------
+                      00173 ;Taken from www.utp.edu.co/~eduque/sistemasdigitales2
+                      00174 ;Modified by students group :Gallego,Velez,Jimenez,Salazar.
+                      00175 
+                      00176 ;=============== CONVIERTE UN NUMERO BINARIO A BCD ===========
+                      00177 ; La rutina sólo requiere que se coloque el valor
+                      00178 ; a convertir en un registro, denominado aquí Unidad.
+                      00179 ; Ella retorna las decenas y las centenas (dígitos
+                      00180 ; decimales) en un par de registros adicionales.
+                      00181 
+004B                  00182 Bin_BCD
+004B   01A1           00183                 clrf    Decena          ;Limpiar decenas        
+004C   300A           00184                 movlw   d'10'           ;Cargar a W con decimal 
+004D                  00185 Repite          
+Message[305]: Using default destination of 1 (file).
+004D   02A0           00186                 subwf    Unidad         ;Restarle al valor digital 10
+004E   1C03           00187                 btfss   status,0        ;Verificar estado del carry
+004F   2852           00188                 goto    SUM1                    ;Si cero, dejar de restar 10
+Message[305]: Using default destination of 1 (file).
+0050   0AA1           00189                 incf    Decena          ;Si uno, incrementa decenas
+0051   284D           00190                 goto    Repite          ;y repite la resta de 10
+Message[305]: Using default destination of 1 (file).
+0052   07A0           00191 SUM1    addwf   Unidad          ;Sumarle 10 al valor digital
+0053   3400           00192                 RETLW 0                         ;Regresa con 0
+Warning[203]: Found opcode in column 1. (return)
+0054   0008           00193 return
+                      00194 
+                      00195 ;*************** Main ASM *****************************
+0055                  00196 inicio          
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0055   2029           00197                 call        ports           ;configure the right ports and trisx's 
+0056   0186           00198                 clrf            ptob                    ;Clean port B and C for {RB0:RB7 == 0 ,RC0:RC7 =
+                            =0 }
+0057   0187           00199                 clrf            ptoc
+0058   0188           00200                 clrf            ptod                ;clean port d 
+                      00201                 
+                      00202 
+0059   203B           00203 a               call            conver              ;Call converter subrutine CAD
+005A   0000           00204         nop
+005B   204B           00205                 call Bin_BCD    
+005C   201A           00206                 call            display             ;refresh display 
+                      00207 ;Según sean los valores de W y el registro DATO, si aplicamos 
+                      00208 ;SUBWF DATO 
+                      00209 ;obtendremos diferentes resultados en el bit CARRY. 
+                      00210 ;Si DATO = 3 y W = 2; el resultado será DATO = 1 y C = 1. 
+                      00211 ;Si DATO = 2 y W = 2; el resultado será DATO = 0 y C = 1. 
+                      00212 ;Si DATO = 1 y W = 2; el resultado será DATO = FFH y C = 0. 
+                      00213 ;Vemos que C = 1 porque el resultado es positivo y C = 0 cuando el 
+                      00214 ;resultado es negativo. 
+005D   301F           00215         movlw d'31'
+005E   0220           00216         subwf   Unidad,0
+005F   1C03           00217         btfss   status,c
+0060   2864           00218         goto    Unidad_ES_MENOR_AL_T
+0061   1D03           00219         btfss   status,z
+0062   2867           00220         goto    Unidad_ES_MAYOR_AL_T
+                      00221         
+0063   2855           00222         goto    inicio
+0064                  00223 Unidad_ES_MENOR_AL_T
+0064   1008           00224                 bcf     ptod,0          ;motor apagado
+0065   1488           00225                 bsf ptod,1              ;led rojo encendido
+0066   2859           00226                 goto a
+                      00227                 
+0067                  00228 Unidad_ES_MAYOR_AL_T
+0067   1408           00229                 bsf ptod,0              ;enciende motor
+0068   1508           00230                 bsf ptod,2              ;enciende led verde
+0069   2859           00231                 goto    a 
+006A   2855           00232                 goto            inicio                  ;puede ser a ciclo 1 
+                      00233                 end
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  6
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+Bin_BCD                           0000004B
+C                                 00000000
+Decena                            00000021
+Repite                            0000004D
+STATUS                            00000003
+SUM1                              00000052
+Unidad                            00000020
+Unidad_ES_MAYOR_AL_T              00000067
+Unidad_ES_MENOR_AL_T              00000064
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00000FCF
+_CP_HALF                          00001FDF
+_CP_OFF                           00003FFF
+_CP_UPPER_256                     00002FEF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_ENABLE_OFF                   00003DFF
+_WRT_ENABLE_ON                    00003FFF
+_XT_OSC                           00003FFD
+__16F877                          00000001
+a                                 00000059
+adcon0                            0000001F
+adcon1                            0000009F
+adresh                            0000001E
+adresl                            0000009E
+c                                 00000000
+comp                              00000022
+consu                             00000046
+conver                            0000003B
+display                           0000001A
+go                                00000002
+inicio                            00000055
+intcon                            0000000B
+irp                               00000007
+loops                             00000030
+loops2                            00000031
+loops3                            00000036
+otro                              00000004
+otro2                             00000002
+pcl                               00000002
+pclath                            0000000A
+MPASM  5.35                       SENSORT.ASM   4-1-2013  23:38:06         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+pir1                              0000000C
+ports                             00000029
+ptoa                              00000005
+ptob                              00000006
+ptoc                              00000007
+ptod                              00000008
+ptoe                              00000009
+rcreg                             0000001A
+rcsta                             00000018
+retarms                           00000001
+rp0                               00000005
+rp1                               00000006
+spbrg                             00000099
+status                            00000003
+tabla                             0000000F
+trisa                             00000085
+trisb                             00000086
+trisc                             00000087
+trisd                             00000088
+trise                             00000089
+txif                              00000004
+txreg                             00000019
+txsta                             00000098
+z                                 00000002
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXX----- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   107
+Program Memory Words Free:  8085
+
+
+Errors   :     0
+Warnings :     3 reported,     0 suppressed
+Messages :     9 reported,     0 suppressed
+
+
