@@ -1,0 +1,10 @@
+Warning[205] D:\TEMPERATURE\ORIGINAL2.TXT 49 : Found directive in column 1. (list)
+Warning[205] D:\TEMPERATURE\ORIGINAL2.TXT 73 : Found directive in column 1. (__CONFIG)
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 114 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 241 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 243 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 245 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 247 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Warning[202] D:\TEMPERATURE\ORIGINAL2.TXT 248 : Argument out of range.  Least significant bits used.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 249 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] D:\TEMPERATURE\ORIGINAL2.TXT 251 : Register in operand not in bank 0.  Ensure that bank bits are correct.

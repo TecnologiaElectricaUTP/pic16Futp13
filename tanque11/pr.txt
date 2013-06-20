@@ -1,0 +1,99 @@
+; ******** DEFINICION DE REGISTROS UTILIZADOS
+status	equ	03h
+ptoa	equ	05h
+ptob	equ	06h
+ptoc	equ	07h
+ptod	equ	08h
+ptoe	equ	09h
+trisa	equ	85h
+trisb	equ	86h
+trisc	equ	87h
+trisd	equ	88h
+trise	equ	89h
+adcon1	equ	9fh
+
+;Definición de bits utilizados
+rp0	equ	5
+rp1	equ	6
+
+; ************  Configuración para el simulador Proteus
+list p=16f877
+_CP_ALL                      	EQU     H'0FCF'
+_CP_HALF                     	EQU     H'1FDF'
+_CP_UPPER_256                	EQU     H'2FEF'
+_CP_OFF                      	EQU     H'3FFF'
+_DEBUG_ON                	EQU     H'37FF'
+_DEBUG_OFF                   	EQU     H'3FFF'
+_WRT_ENABLE_ON               	EQU     H'3FFF'
+_WRT_ENABLE_OFF              	EQU     H'3DFF'
+_CPD_ON                      	EQU     H'3EFF'
+_CPD_OFF                     	EQU     H'3FFF'
+_LVP_ON                      	EQU     H'3FFF' 
+_LVP_OFF                     	EQU     H'3F7F'	
+_BODEN_ON                    	EQU     H'3FFF'
+_BODEN_OFF                   	EQU     H'3FBF'
+_PWRTE_OFF                   	EQU     H'3FFF'
+_PWRTE_ON                    	EQU     H'3FF7'
+_WDT_ON                      	EQU     H'3FFF'
+_WDT_OFF                     	EQU     H'3FFB'
+_LP_OSC                      	EQU     H'3FFC'
+_XT_OSC                      	EQU     H'3FFD'
+_HS_OSC                      	EQU     H'3FFE'
+_RC_OSC                      	EQU     H'3FFF'
+__CONFIG _CP_OFF & _WDT_OFF & _XT_OSC & _PWRTE_ON 
+
+
+; ***** COMIENZE EL PROGRAMA
+
+	org	00		;Empieza a llenar la ROM desde la dirección 000h
+	goto	inicio
+
+
+;  ************  PROGRAMA PRINCIPAL  ***************
+
+inicio	clrf	status		;poner status en cero para asegurar banco 0
+	bsf	status,rp0	;pasar al banco 1 de la RAM
+	movlw	b'11111111'		
+	movwf	trisa		;puerto A entradas
+	movlw	b'11100000'
+	movwf	trisb		;puerto B salidas
+	movlw	b'11111111'
+	movwf	trisc		;puerto C entradas  
+	movlw	b'11111111'
+	movwf	trisd		;puerto D entradas
+	movlw	b'11101111'
+	movwf	trise		;puerto E entradas  
+	movlw	b'11110111'
+	movwf	adcon1		;configura puerto A como entradas/salidas digitales
+
+	bcf	status,rp0	;pasar al banco 0
+	clrf	ptob		;Inicia con todas las salidas en cero
+	
+ciclo	btfsc	ptoa,2		;pregunta sin sensor c es cero
+	goto	rebose
+
+	btfsc	ptoa,1		;pregunta sin sensor b es cero
+	goto	lleno
+
+	btfsc	ptoa,0
+	goto	bajo
+	movlw	b'00011'
+	movwf	ptob
+	goto	ciclo
+
+;-----------------------------------------------------------
+
+rebose	movlw	b'10000'	
+	movwf	ptob		;enciende Lr y las demas salidas estan en cero
+	goto	ciclo
+
+lleno	movlw	b'01000'
+	movwf	ptob		;encender eL Led  y las demas salidas en cero
+	goto	ciclo
+
+bajo	movlw	b'00101'	;encender eL Led Lb y B1 y las demas salidas en cero
+	movwf	ptob
+	goto	ciclo
+	
+	end
+

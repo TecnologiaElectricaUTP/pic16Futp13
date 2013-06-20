@@ -17,6 +17,7 @@
 ;Resumen de FSR's y GPR 
 ;--------------------------------------------------------------------------------
 ;Memoria de programa : FLASH, 8 K de instrucciones de 14 bits c/u. 
+
 ; Memoria de datos       : 368 bytes RAM, 256 bytes EEPROM. 
 ; Pila (Stack)  : 8 niveles (14 bits). 
 ; Fuentes de interrupción : 13 

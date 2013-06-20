@@ -1,0 +1,536 @@
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ; **** DEFINICION DE REGISTROS Y BITS UTILIZADOS ****
+  00000003            00002 status  equ     03
+  00000005            00003 ptoa    equ     05
+  00000006            00004 ptob    equ     06
+  00000007            00005 ptoc    equ     07
+  00000008            00006 ptod    equ     08
+  00000009            00007 ptoe    equ     09
+  0000000A            00008 pclath  equ     0ah
+  0000000B            00009 intcon  equ     0bh
+  0000000C            00010 pir1    equ     0ch
+  00000018            00011 rcsta   equ     18h
+  00000019            00012 txreg   equ     19h
+  00000085            00013 trisa   equ     85h
+  00000086            00014 trisb   equ     86h
+  00000087            00015 trisc   equ     87h
+  00000088            00016 trisd   equ     88h
+  00000089            00017 trise   equ     89h
+  00000098            00018 txsta   equ     98h
+  00000099            00019 spbrg   equ     99h
+  0000009E            00020 adresl  equ     9eh
+  0000001E            00021 adresh  equ     1eh
+  0000009F            00022 adcon1  equ     9fh
+  0000001F            00023 adcon0  equ     1fh
+                      00024 
+                      00025 ; Definición de bits utilizados
+  00000005            00026 rp0     equ     5
+  00000002            00027 go      equ     2
+  00000002            00028 z       equ     2
+  00000000            00029 c       equ     0
+  00000000            00030 w       equ     0
+                      00031 
+                      00032 ; Pines del puerto D
+  00000001            00033 e               equ     1h              ;para habilitar el modulo LCD
+  00000000            00034 rs              equ     0h              ;para seleccionar datos o instruccion del LCD
+                      00035 
+                      00036 ; Variables del usuario
+  00000024            00037 cont            equ     24h
+  00000025            00038 loops           equ     25h
+  00000026            00039 loops2          equ     26h
+  00000029            00040 buffer1         equ     29h
+  00000030            00041 shield          equ     30h
+  00000031            00042 uni             equ     31h             
+  00000032            00043 dec             equ     32h
+  00000033            00044 cen             equ     33h
+  00000035            00045 T               equ     35h             
+                      00046 
+                      00047 ; **** Configuracion para el Proteus ****
+                      00048 
+Warning[205]: Found directive in column 1. (list)
+                      00049 list p=16f877
+  00000FCF            00050 _CP_ALL                         EQU     H'0FCF'
+  00001FDF            00051 _CP_HALF                        EQU     H'1FDF'
+  00002FEF            00052 _CP_UPPER_256                   EQU     H'2FEF'
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00003FFF            00053 _CP_OFF                         EQU     H'3FFF'
+  000037FF            00054 _DEBUG_ON                       EQU     H'37FF'
+  00003FFF            00055 _DEBUG_OFF                      EQU     H'3FFF'
+  00003FFF            00056 _WRT_ENABLE_ON                  EQU     H'3FFF'
+  00003DFF            00057 _WRT_ENABLE_OFF                 EQU     H'3DFF'
+  00003EFF            00058 _CPD_ON                         EQU     H'3EFF'
+  00003FFF            00059 _CPD_OFF                        EQU     H'3FFF'
+  00003FFF            00060 _LVP_ON                         EQU     H'3FFF' 
+  00003F7F            00061 _LVP_OFF                        EQU     H'3F7F' 
+  00003FFF            00062 _BODEN_ON                       EQU     H'3FFF'
+  00003FBF            00063 _BODEN_OFF                      EQU     H'3FBF'
+  00003FFF            00064 _PWRTE_OFF                      EQU     H'3FFF'
+  00003FF7            00065 _PWRTE_ON                       EQU     H'3FF7'
+  00003FFF            00066 _WDT_ON                         EQU     H'3FFF'
+  00003FFB            00067 _WDT_OFF                        EQU     H'3FFB'
+  00003FFC            00068 _LP_OSC                         EQU     H'3FFC'
+  00003FFD            00069 _XT_OSC                         EQU     H'3FFD'
+  00003FFE            00070 _HS_OSC                         EQU     H'3FFE'
+  00003FFF            00071 _RC_OSC                         EQU     H'3FFF'
+                      00072 
+Warning[205]: Found directive in column 1. (__CONFIG)
+2007   3FF1           00073 __CONFIG _CP_OFF & _WDT_OFF & _XT_OSC & _PWRTE_ON 
+                      00074 
+                      00075 
+                      00076 ; ***** EMPIEZA EL PROGRAMA *****
+                      00077 
+0000                  00078         org     00
+0000   287C           00079         goto    inicio
+                      00080 
+0001   00A5           00081 retarms movwf   loops           ;rutina de retardo en milisegundos
+0002   306E           00082 otro2   movlw   d'110'          ;el numero de milisegundos llega
+0003   00A6           00083         movwf   loops2          ;cargado en el registro loops
+                      00084         
+0004   0000           00085 otro    nop
+0005   0000           00086         nop
+0006   0000           00087         nop     
+0007   0000           00088         nop
+0008   0000           00089         nop
+0009   0000           00090         nop
+000A   0BA6           00091         decfsz  loops2,1        ;pregunta si termino 1 ms
+000B   2804           00092         goto    otro
+000C   0BA5           00093         decfsz  loops,1         ;pregunta si termina el retardo
+000D   2802           00094         goto    otro2
+000E   0008           00095         return
+                      00096 
+                      00097                                 ;Rutina de conversion A/D a 8 bits guardando 2 datos en binario en en lo
+                            s registros buffer y buffer1                            
+                      00098                                 
+000F   0000           00099 conver  nop
+0010   0000           00100         nop     
+0011   0000           00101         nop                     ;estas instrucciones nop dan al micro el tiempo de adquisicion requerido
+                            . En este caso de 7 us
+0012   0000           00102         nop                     
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0013   0000           00103         nop                     
+0014   0000           00104         nop
+0015   0000           00105         nop
+0016   0000           00106         nop
+0017   151F           00107         bsf     adcon0,go       
+0018   0000           00108         nop
+0019   0000           00109         nop
+001A   191F           00110 consu   btfsc   adcon0,go       
+001B   281A           00111         goto    consu
+                      00112 
+001C   1683           00113         bsf     status,rp0      
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001D   081E           00114         movf    adresl,w        
+                      00115         
+001E   1283           00116         bcf     status,rp0      ;pasar banco0
+                      00117         
+001F   00A9           00118         movwf   buffer1         
+0020   1003           00119         bcf     status,c
+0021   0C29           00120         rrf     buffer1,w 
+0022   00B5           00121         movwf   T               
+0023   00A9           00122         movwf   buffer1 
+0024   0008           00123         return
+                      00124 
+0025   3005           00125 retalcd         movlw   05h             ;Un retardo de unos 20 us para darle tiempo a la LCD
+0026   00C3           00126                 movwf   43h             
+0027   0BC3           00127 decre           decfsz  43h,1
+0028   2827           00128                 goto    decre
+0029   0008           00129                 return
+                      00130 
+                      00131                                         ;Rutina llena que la pantalla de espacios en blanco
+002A   01CC           00132 limpia          clrf    4ch
+                      00133                 
+                      00134                 
+002B   3020           00135 limpi           movlw   " "             ;el espacio es un caracter en blanco
+002C   203A           00136                 call    dato
+                      00137 
+                      00138                 
+                      00139 
+                      00140         
+002D   0ACC           00141                 incf    4ch,1
+002E   3050           00142                 movlw   50h             ;se incrementa hasta la posicion 50h para borrar todo
+002F   064C           00143                 xorwf   4ch,0
+0030   1D03           00144                 btfss   status,z
+                      00145         
+                      00146 
+                      00147 
+                      00148 
+0031   282B           00149                 goto    limpi
+0032   0008           00150                 return
+                      00151 
+                      00152                                         ;**Las sgtes rutinas envian instrucciones o datos al LCD**
+0033   0088           00153 control         movwf   ptod
+0034   1007           00154                 bcf     ptoc,rs         
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0035   1487           00155                 bsf     ptoc,e                     
+0036   2025           00156                 call    retalcd
+0037   1087           00157                 bcf     ptoc,e          
+0038   2025           00158                 call    retalcd
+0039   0008           00159                 return
+                      00160 
+                      00161 
+003A   0088           00162 dato            movwf   ptod 
+003B   1407           00163                 bsf     ptoc,rs        
+003C   1487           00164                 bsf     ptoc,e
+003D   2025           00165                 call    retalcd
+003E   1087           00166                 bcf     ptoc,e          
+003F   2025           00167                 call    retalcd
+0040   0008           00168                 return
+                      00169 
+                      00170 
+0041   00A4           00171 suma    movwf   cont            
+                      00172                                 
+0042   03A4           00173 XX2     decf    cont,1
+0043   0824           00174         movf    cont,w
+0044   3AFF           00175         xorlw   d'255'
+0045   1903           00176         btfsc   status,z        
+0046   0008           00177         return                  
+0047   0AB1           00178         incf    uni,1   
+0048   0831           00179         movf    uni,0
+0049   3A0A           00180         xorlw   d'10'
+004A   1D03           00181         btfss   status,z
+004B   2842           00182         goto    XX2
+004C   01B1           00183         clrf    uni
+004D   0AB2           00184         incf    dec,1
+004E   0832           00185         movf    dec,0
+004F   3A0A           00186         xorlw   d'10'
+0050   1D03           00187         btfss   status,z
+0051   2842           00188         goto    XX2
+0052   01B2           00189         clrf    dec     
+0053   0AB3           00190         incf    cen,1
+0054   2842           00191         goto    XX2
+                      00192                                 
+0055   00B0           00193 cbd     movwf   shield          
+0056   01B1           00194         clrf    uni                             
+0057   01B2           00195         clrf    dec             
+0058   01B3           00196         clrf    cen             
+                      00197 
+0059   3040           00198         movlw   d'64'
+005A   1B30           00199         btfsc   shield,6        
+005B   2041           00200         call    suma            
+005C   3020           00201         movlw   d'32'
+005D   1AB0           00202         btfsc   shield,5        
+005E   2041           00203         call    suma            
+005F   3010           00204         movlw   d'16'
+0060   1A30           00205         btfsc   shield,4        
+0061   2041           00206         call    suma            
+0062   3008           00207         movlw   d'8'
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0063   19B0           00208         btfsc   shield,3        
+0064   2041           00209         call    suma            
+0065   3004           00210         movlw   d'4'
+0066   1930           00211         btfsc   shield,2        
+0067   2041           00212         call    suma            
+0068   3002           00213         movlw   d'2'
+0069   18B0           00214         btfsc   shield,1        
+006A   2041           00215         call    suma            
+006B   3001           00216         movlw   d'1'
+006C   1830           00217         btfsc   shield,0        
+006D   2041           00218         call    suma            
+                      00219 
+006E   3030           00220         movlw   h'30'           
+006F   07B3           00221         addwf   cen,1           
+0070   3030           00222         movlw   h'30'           
+0071   07B2           00223         addwf   dec,1           
+0072   3030           00224         movlw   h'30'           
+0073   07B1           00225         addwf   uni,1           
+0074   0008           00226         return
+                      00227 
+0075   0833           00228         movf    cen,0
+0076   203A           00229         call    dato
+0077   0832           00230         movf    dec,0
+0078   203A           00231         call    dato
+0079   0831           00232         movf    uni,0
+007A   203A           00233         call    dato
+007B   0008           00234         return
+                      00235 
+                      00236 ;************ PROGRAMA PRINCIPAL ************
+                      00237 
+007C   0183           00238 inicio  clrf    status
+007D   1683           00239         bsf     status,rp0      
+007E   307F           00240         movlw   b'1111111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+007F   0085           00241         movwf   trisa
+0080   30FF           00242         movlw   b'11111111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0081   0086           00243         movwf   trisb
+0082   30FC           00244         movlw   b'11111100'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0083   0087           00245         movwf   trisc
+0084   3000           00246         movlw   b'00000000'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0085   0088           00247         movwf   trisd
+Warning[202]: Argument out of range.  Least significant bits used.
+0086   30AC           00248         movlw   d'11101100'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0087   0089           00249         movwf   trise   
+0088   308E           00250         movlw   b'10001110'     
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0089   009F           00251         movwf   adcon1
+008A   1283           00252         bcf     status,5        
+                      00253 
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+008B   3064           00254         movlw   d'100'          
+008C   2001           00255         call    retarms
+                      00256 
+008D   3038           00257 begin   movlw   b'00111000'     
+008E   2033           00258         call    control
+008F   300C           00259         movlw   b'00001100'     
+0090   2033           00260         call    control
+0091   3006           00261         movlw   b'00000110'     
+0092   2033           00262         call    control
+0093   3080           00263         movlw   b'10000000'     
+0094   2033           00264         call    control         
+                      00265 
+0095   202A           00266 blank   call    limpia        
+                      00267 
+0096   3081           00268         movlw   b'10000001'     ;PRIMER CANAL
+0097   009F           00269         movwf   adcon0
+                      00270         
+0098   200F           00271         call    conver          ;hacer la conversion A/D
+                      00272 
+                      00273         
+                      00274 
+0099   3080           00275 _       movlw   b'10000000'             ;ubica puntero en linea superior
+009A   2033           00276         call    control                 ;primera posicion
+                      00277 
+009B   3054           00278         movlw   "T"
+009C   203A           00279         call    dato
+009D   3045           00280         movlw   "E"
+009E   203A           00281         call    dato
+009F   304D           00282         movlw   "M"
+00A0   203A           00283         call    dato
+00A1   3050           00284         movlw   "P"
+00A2   203A           00285         call    dato
+00A3   3045           00286         movlw   "E"
+00A4   203A           00287         call    dato 
+00A5   3058           00288         movlw   "X"
+00A6   203A           00289         call    dato
+00A7   3054           00290         movlw   "T"
+00A8   203A           00291         call    dato
+                      00292         
+                      00293 
+00A9   2055           00294         call    cbd
+                      00295 
+                      00296         
+                      00297                 
+                      00298 
+00AA   3089           00299         movlw   b'10001001'     ;selecciona canal 1 y reloj de conv
+00AB   009F           00300         movwf   adcon0 
+                      00301         
+00AC   200F           00302         call    conver
+                      00303 
+00AD   30C0           00304         movlw   b'11000000'
+00AE   2033           00305         call    control 
+                      00306 
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00AF   3054           00307         movlw   "T"
+00B0   203A           00308         call    dato
+00B1   3045           00309         movlw   "E"
+00B2   203A           00310         call    dato
+00B3   304D           00311         movlw   "M"
+00B4   203A           00312         call    dato
+00B5   3050           00313         movlw   "P"
+00B6   203A           00314         call    dato
+00B7   3049           00315         movlw   "I"
+00B8   203A           00316         call    dato
+00B9   304E           00317         movlw   "N"
+00BA   203A           00318         call    dato
+00BB   3054           00319         movlw   "T"
+00BC   203A           00320         call    dato
+                      00321         
+00BD   2055           00322         call    cbd
+                      00323         
+                      00324                 
+                      00325 
+00BE   3041           00326         movlw   b'01000001'     
+00BF   009F           00327         movwf   adcon0          
+00C0   200F           00328         call    conver          
+                      00329         
+00C1   0835           00330         movf    T,w             
+00C2   2055           00331         call    cbd             
+00C3   3087           00332         movlw   b'10000111'     
+00C4   2033           00333         call    control         
+00C5   0833           00334         movf    cen,w           
+00C6   203A           00335         call    dato
+00C7   0832           00336         movf    dec,w           
+00C8   203A           00337         call    dato
+00C9   0831           00338         movf    uni,w           
+00CA   203A           00339         call    dato
+                      00340 
+00CB   3089           00341         movlw   b'10001001'     
+00CC   009F           00342         movwf   adcon0          
+00CD   200F           00343         call    conver  
+                      00344                                 ;Envia serialmente los datos
+                      00345                                 ;obtenidos en la conversio
+                      00346         
+00CE   0835           00347         movf    T,w             
+00CF   2055           00348         call    cbd             
+00D0   30C7           00349         movlw   b'11000111'     
+00D1   2033           00350         call    control         
+00D2   0833           00351         movf    cen,w           
+00D3   203A           00352         call    dato
+00D4   0832           00353         movf    dec,w           
+00D5   203A           00354         call    dato
+00D6   0831           00355         movf    uni,w           
+00D7   203A           00356         call    dato
+                      00357 
+                      00358         
+00D8   3084           00359         movlw   b'10000100'     
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00D9   2033           00360         call    control                 
+                      00361         
+00DA   2899           00362         goto    _               
+                      00363                                 ;realizar nuevamente la convercion de datos
+                      00364         end
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T                                 00000035
+XX2                               00000042
+_                                 00000099
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00000FCF
+_CP_HALF                          00001FDF
+_CP_OFF                           00003FFF
+_CP_UPPER_256                     00002FEF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_ENABLE_OFF                   00003DFF
+_WRT_ENABLE_ON                    00003FFF
+_XT_OSC                           00003FFD
+__16F877                          00000001
+adcon0                            0000001F
+adcon1                            0000009F
+adresh                            0000001E
+adresl                            0000009E
+begin                             0000008D
+blank                             00000095
+buffer1                           00000029
+c                                 00000000
+cbd                               00000055
+cen                               00000033
+consu                             0000001A
+cont                              00000024
+control                           00000033
+conver                            0000000F
+dato                              0000003A
+dec                               00000032
+decre                             00000027
+e                                 00000001
+go                                00000002
+inicio                            0000007C
+intcon                            0000000B
+limpi                             0000002B
+limpia                            0000002A
+loops                             00000025
+loops2                            00000026
+otro                              00000004
+otro2                             00000002
+MPASM  5.35                     ORIGINAL2.TXT   11-19-2012  20:33:09         PAGE 10
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+pclath                            0000000A
+pir1                              0000000C
+ptoa                              00000005
+ptob                              00000006
+ptoc                              00000007
+ptod                              00000008
+ptoe                              00000009
+rcsta                             00000018
+retalcd                           00000025
+retarms                           00000001
+rp0                               00000005
+rs                                00000000
+shield                            00000030
+spbrg                             00000099
+status                            00000003
+suma                              00000041
+trisa                             00000085
+trisb                             00000086
+trisc                             00000087
+trisd                             00000088
+trise                             00000089
+txreg                             00000019
+txsta                             00000098
+uni                               00000031
+w                                 00000000
+z                                 00000002
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+00C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXX----- ---------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   219
+Program Memory Words Free:  7973
+
+
+Errors   :     0
+Warnings :     3 reported,     0 suppressed
+Messages :     7 reported,     0 suppressed
+
+
